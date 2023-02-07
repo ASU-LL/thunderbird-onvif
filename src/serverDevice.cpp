@@ -439,6 +439,12 @@ int DeviceBindingService::GetCapabilities(_tds__GetCapabilities *tds__GetCapabil
 			tds__GetCapabilitiesResponse.Capabilities->Events->XAddr = url;
 		}
 
+		if (!tds__GetCapabilitiesResponse.Capabilities->PTZ && ( (category == tt__CapabilityCategory__All) || (category == tt__CapabilityCategory__PTZ) ) )
+		{
+			tds__GetCapabilitiesResponse.Capabilities->PTZ = soap_new_tt__PTZCapabilities(this->soap);
+			tds__GetCapabilitiesResponse.Capabilities->PTZ->XAddr = url;
+		}
+
 		if (!tds__GetCapabilitiesResponse.Capabilities->Extension && (category == tt__CapabilityCategory__All) )
 		{
 			tds__GetCapabilitiesResponse.Capabilities->Extension  = soap_new_tt__CapabilitiesExtension(this->soap);
@@ -457,9 +463,7 @@ int DeviceBindingService::GetCapabilities(_tds__GetCapabilities *tds__GetCapabil
 			tds__GetCapabilitiesResponse.Capabilities->Extension->Display->FixedLayout = true;
 			tds__GetCapabilitiesResponse.Capabilities->Extension->DeviceIO = soap_new_tt__DeviceIOCapabilities(this->soap);
 			tds__GetCapabilitiesResponse.Capabilities->Extension->DeviceIO->XAddr = url;
-			// TODO: add number of video sources published
-			// len(devices)
-			// tds__GetCapabilitiesResponse.Capabilities->Extension->DeviceIO->VideoSources = ctx->m_devices.size();
+			tds__GetCapabilitiesResponse.Capabilities->Extension->DeviceIO->VideoSources = ctx->m_devices.size();
 			tds__GetCapabilitiesResponse.Capabilities->Extension->DeviceIO->VideoOutputs = 1;
 		}
 	}

@@ -17,6 +17,7 @@
  ptz.wsdl server
 ----------------------------------------------------------------------------- */
 
+#include <curl/curl.h>
 #include <linux/videodev2.h>
 
 #include "soapPTZBindingService.h"
@@ -124,16 +125,18 @@ int PTZBindingService::GotoHomePosition(_tptz__GotoHomePosition *tptz__GotoHomeP
 {
 	std::cout << __FUNCTION__ << std::endl;
 	ServiceContext* ctx = (ServiceContext*)this->soap->user;
-	
-	int ret = SOAP_FAULT;
-	// TODO: send to appropriate pi based on profile
-	// auto it = ctx->m_devices.find(tptz__GotoHomePosition->ProfileToken);
-	// if (it != ctx->m_devices.end())
-	// {	
-	// 	ctx->setCtrlValue(it->first, V4L2_CID_PAN_RESET, 1);
-	// 	ctx->setCtrlValue(it->first, V4L2_CID_TILT_RESET, 1);
-	// 	ret = SOAP_OK;	
-	// }
+	int ret = 0;
+
+    auto it = ctx->m_devices.find(tptz__GotoHomePosition->ProfileToken);
+    if (it != ctx->m_devices.end())
+    {
+        Device d = it->second;
+        std::string url = d.m_ptzUri + "pan_absolute/" + std::to_string(0);
+        ret = ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
+
+        url = d.m_ptzUri + "tilt_absolute/" + std::to_string(0);
+        ret &= ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
+    }
 	
 	return ret;
 }
@@ -161,15 +164,29 @@ int PTZBindingService::RelativeMove(_tptz__RelativeMove *tptz__RelativeMove, _tp
 	ServiceContext* ctx = (ServiceContext*)this->soap->user;
 	
 	int ret = SOAP_FAULT;
-	// TODO: send to appropriate pi based on profile
-	// auto it = ctx->m_devices.find(tptz__RelativeMove->ProfileToken);
-	// if (it != ctx->m_devices.end())
-	// {	
-	// 	ctx->setCtrlValue(it->first, V4L2_CID_PAN_RELATIVE , tptz__RelativeMove->Translation->PanTilt->x);
-	// 	ctx->setCtrlValue(it->first, V4L2_CID_TILT_RELATIVE, tptz__RelativeMove->Translation->PanTilt->y);
-	// 	ctx->setCtrlValue(it->first, V4L2_CID_ZOOM_RELATIVE, tptz__RelativeMove->Translation->Zoom->x);
-	// 	ret = SOAP_OK;	
-	// }
+    auto it = ctx->m_devices.find(tptz__RelativeMove->ProfileToken);
+    if (it != ctx->m_devices.end())
+    {
+        Device d = it->second;
+		std::string url;
+		if(tptz__RelativeMove->Translation->PanTilt && tptz__RelativeMove->Translation->PanTilt->x)
+		{
+			url = d.m_ptzUri + "pan_relative/" + std::to_string(tptz__RelativeMove->Translation->PanTilt->x);
+        	ret = ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
+		}
+        
+		if(tptz__RelativeMove->Translation->PanTilt && tptz__RelativeMove->Translation->PanTilt->y)
+		{
+        	url = d.m_ptzUri + "tilt_relative/" + std::to_string(tptz__RelativeMove->Translation->PanTilt->y);
+        	ret &= ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
+		}
+
+		if(tptz__RelativeMove->Translation->Zoom && tptz__RelativeMove->Translation->Zoom->x)
+		{
+        	url = d.m_ptzUri + "zoom_relative/" + std::to_string(tptz__RelativeMove->Translation->Zoom->x);
+        	ret &= ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
+		}
+    }
 	
 	return ret;
 }
@@ -188,16 +205,31 @@ int PTZBindingService::AbsoluteMove(_tptz__AbsoluteMove *tptz__AbsoluteMove, _tp
 	std::cout << __FUNCTION__ << std::endl;
 	ServiceContext* ctx = (ServiceContext*)this->soap->user;
 
-	int ret = SOAP_FAULT;
-	// TODO: send to appropriate pi based on profile	
-	// auto it = ctx->m_devices.find(tptz__AbsoluteMove->ProfileToken);
-	// if (it != ctx->m_devices.end())
-	// {	
-	// 	ctx->setCtrlValue(it->first, V4L2_CID_PAN_ABSOLUTE , tptz__AbsoluteMove->Position->PanTilt->x);
-	// 	ctx->setCtrlValue(it->first, V4L2_CID_TILT_ABSOLUTE, tptz__AbsoluteMove->Position->PanTilt->y);
-	// 	ctx->setCtrlValue(it->first, V4L2_CID_ZOOM_ABSOLUTE, tptz__AbsoluteMove->Position->Zoom->x);
-	// 	ret = SOAP_OK;	
-	// }
+    int ret = SOAP_FAULT;
+    auto it = ctx->m_devices.find(tptz__AbsoluteMove->ProfileToken);
+    if (it != ctx->m_devices.end())
+    {
+        Device d = it->second;
+
+		std::string url;
+		if(tptz__AbsoluteMove->Position->PanTilt && tptz__AbsoluteMove->Position->PanTilt->x)
+		{
+			url = d.m_ptzUri + "pan_absolute/" + std::to_string(tptz__AbsoluteMove->Position->PanTilt->x);
+        	ret = ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
+		}
+
+		if(tptz__AbsoluteMove->Position->PanTilt && tptz__AbsoluteMove->Position->PanTilt->y)
+		{
+			url = d.m_ptzUri + "tilt_absolute/" + std::to_string(tptz__AbsoluteMove->Position->PanTilt->y);
+        	ret &= ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
+		}
+
+		if(tptz__AbsoluteMove->Position->Zoom && tptz__AbsoluteMove->Position->Zoom->x)
+		{
+			url = d.m_ptzUri + "zoom_absolute/" + std::to_string(tptz__AbsoluteMove->Position->Zoom->x);
+        	ret &= ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
+		}
+    }
 	
 	return ret;
 }

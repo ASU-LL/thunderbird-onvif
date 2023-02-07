@@ -14,7 +14,7 @@ GSOAP_PLUGINS=$(GSOAP_BASE)/plugin
 CXXFLAGS+=-std=c++11 -g2 -I inc -I ws-discovery/gsoap/
 CXXFLAGS+=-I gen -I $(GSOAP_PREFIX)/include -I $(GSOAP_PLUGINS)
 CXXFLAGS+=-DWITH_OPENSSL -DSOAP_PURE_VIRTUAL -fpermissive -pthread -DVERSION=\"$(VERSION)\"
-LDFLAGS+=-L $(GSOAP_PREFIX)/lib/ -lgsoapssl++ -lz -pthread -lssl -lcrypto -ldl -lyaml-cpp -static-libstdc++
+LDFLAGS+=-L $(GSOAP_PREFIX)/lib/ -lgsoapssl++ -lz -pthread -lssl -lcrypto -ldl -lyaml-cpp -lcurl -static-libstdc++
 
 WSSE_SRC=$(GSOAP_PLUGINS)/wsseapi.c $(GSOAP_PLUGINS)/smdevp.c $(GSOAP_PLUGINS)/mecevp.c $(GSOAP_BASE)/custom/struct_timeval.c
 WSSE_OBJ=$(WSSE_SRC:%.c=%.o)

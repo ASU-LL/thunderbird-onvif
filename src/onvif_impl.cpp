@@ -52,57 +52,61 @@ int ServiceContext::isAuthorized(soap* soap)
 
 std::string ServiceContext::getLocalIp()
 {
-	std::string serverAddress;
-	char hostname[HOST_NAME_MAX];
-	if (gethostname(hostname, sizeof(hostname)) == 0)
-	{
-		struct addrinfo hints;
-		struct addrinfo *result;
-		memset(&hints, 0, sizeof(struct addrinfo));
-		hints.ai_family = AF_INET;
-		if (getaddrinfo(hostname, NULL, &hints, &result) == 0)
-		{
-			if (result != NULL)
-			{
-				struct sockaddr_in *addr = (struct sockaddr_in *)result->ai_addr;
-				serverAddress.assign(inet_ntoa(addr->sin_addr));
-				freeaddrinfo(result);
-			}
-		}
-	}
-	return serverAddress;
+	// std::string serverAddress;
+	// char hostname[HOST_NAME_MAX];
+	// if (gethostname(hostname, sizeof(hostname)) == 0)
+	// {
+	// 	struct addrinfo hints;
+	// 	struct addrinfo *result;
+	// 	memset(&hints, 0, sizeof(struct addrinfo));
+	// 	hints.ai_family = AF_INET;
+	// 	if (getaddrinfo(hostname, NULL, &hints, &result) == 0)
+	// 	{
+	// 		if (result != NULL)
+	// 		{
+	// 			struct sockaddr_in *addr = (struct sockaddr_in *)result->ai_addr;
+	// 			serverAddress.assign(inet_ntoa(addr->sin_addr));
+	// 			freeaddrinfo(result);
+	// 		}
+	// 	}
+	// }
+	// return serverAddress;
+
+	return this->m_address;
 }
 
 std::string ServiceContext::getServerIpFromClientIp(int clientip)
 {
-	std::string serverAddress;
-	char host[NI_MAXHOST];
-	struct ifaddrs *ifaddr = NULL;
-	if (getifaddrs(&ifaddr) == 0)
-	{
-		for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
-		{
-			if ((ifa->ifa_netmask != NULL) && (ifa->ifa_netmask->sa_family == AF_INET) && (ifa->ifa_addr != NULL) && (ifa->ifa_addr->sa_family == AF_INET))
-			{
-				struct sockaddr_in *addr = (struct sockaddr_in *)ifa->ifa_addr;
-				struct sockaddr_in *mask = (struct sockaddr_in *)ifa->ifa_netmask;
-				if ((addr->sin_addr.s_addr & mask->sin_addr.s_addr) == (clientip & mask->sin_addr.s_addr))
-				{
-					if (getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, sizeof(host), NULL, 0, NI_NUMERICHOST) == 0)
-					{
-						serverAddress = host;
-						break;
-					}
-				}
-			}
-		}
-	}
-	freeifaddrs(ifaddr);
-	if (serverAddress.empty())
-	{
-		serverAddress = getLocalIp();
-	}
-	return serverAddress;
+	// std::string serverAddress;
+	// char host[NI_MAXHOST];
+	// struct ifaddrs *ifaddr = NULL;
+	// if (getifaddrs(&ifaddr) == 0)
+	// {
+	// 	for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+	// 	{
+	// 		if ((ifa->ifa_netmask != NULL) && (ifa->ifa_netmask->sa_family == AF_INET) && (ifa->ifa_addr != NULL) && (ifa->ifa_addr->sa_family == AF_INET))
+	// 		{
+	// 			struct sockaddr_in *addr = (struct sockaddr_in *)ifa->ifa_addr;
+	// 			struct sockaddr_in *mask = (struct sockaddr_in *)ifa->ifa_netmask;
+	// 			if ((addr->sin_addr.s_addr & mask->sin_addr.s_addr) == (clientip & mask->sin_addr.s_addr))
+	// 			{
+	// 				if (getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, sizeof(host), NULL, 0, NI_NUMERICHOST) == 0)
+	// 				{
+	// 					serverAddress = host;
+	// 					break;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+	// freeifaddrs(ifaddr);
+	// if (serverAddress.empty())
+	// {
+	// 	serverAddress = getLocalIp();
+	// }
+	// return serverAddress;
+
+	return this->m_address;
 }
 
 std::map<in_addr_t, in_addr_t> ServiceContext::getGateways()
@@ -601,4 +605,26 @@ tptz__Capabilities *ServiceContext::getPTZServiceCapabilities(struct soap *soap)
 {
 	tptz__Capabilities *capabilities = soap_new_tptz__Capabilities(soap);
 	return capabilities;
+}
+
+int ServiceContext::httpGet(std::string url)
+{
+	int result = -1;
+	std::cout << "GET: " << url << std::endl;
+
+    CURL *curl = curl_easy_init();
+    CURLcode res;
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    
+        res = curl_easy_perform(curl);
+        if(res != CURLE_OK)
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        else
+			result = 0;
+    }
+
+	curl_easy_cleanup(curl);
+	return result;
 }

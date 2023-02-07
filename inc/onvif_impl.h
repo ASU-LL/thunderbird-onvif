@@ -20,6 +20,7 @@
 #ifndef SERVICE_CONTEXT_H
 #define SERVICE_CONTEXT_H
 
+#include <curl/curl.h>
 #include <list>
 #include <map>
 
@@ -40,19 +41,21 @@ class Device
 {
 	public:
 		Device() {}
-		Device(const std::string &name, uint16_t rtsp_port, const std::string &rtsp_url, uint32_t width, uint32_t height, uint32_t pixformat) 
+		Device(const std::string &name, uint16_t rtsp_port, const std::string &rtsp_url, uint32_t width, uint32_t height, uint32_t pixformat, const std::string &ptzUri) 
 		 : m_name(name), 
 		   m_rtsp_port(rtsp_port), 
 		   m_rtsp_url(rtsp_url),
 		   m_width(width),
 		   m_height(height),
-		   m_pixformat(pixformat) {}
+		   m_pixformat(pixformat),
+		   m_ptzUri(ptzUri) {}
 		std::string m_name;
 		uint16_t m_rtsp_port;
 		std::string m_rtsp_url;
 		uint32_t m_width;
 		uint32_t m_height;
 		uint32_t m_pixformat;
+		std::string m_ptzUri;
 };
 
 class ServiceContext
@@ -102,8 +105,12 @@ public:
 	tt__RecordingJobConfiguration* getRecordingJobConfiguration(struct soap* soap, const std::string & token);
 	tt__RecordingConfiguration*    getRecordingCfg(struct soap* soap);
 	tt__TrackConfiguration*        getTracksCfg(struct soap* soap);
+
+	// web requests
+	int httpGet(std::string url);
 	
 public:
+	std::string m_address;
 	int         m_port;
 	std::map<std::string, Device> m_devices; // device name: device
 	std::map<std::string, User> m_userList;  // username: user

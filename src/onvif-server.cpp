@@ -165,7 +165,9 @@ int main(int argc, char* argv[])
 	deviceCtx.m_userList[server["username"].as<std::string>()] = User(server["password"].as<std::string>(), tt__UserLevel__Administrator);
 	
 	std::cout << "HTTP Port: " << server["http_port"].as<std::int16_t>() << std::endl;
+	std::cout << "Address:   " << server["address"].as<std::string>() << std::endl;
 	deviceCtx.m_port = server["http_port"].as<std::int16_t>();
+	deviceCtx.m_address = server["address"].as<std::string>();
 	std::cout << "# Devices: " << server["devices"].size() << std::endl;
 
 	for(auto device : server["devices"])
@@ -176,7 +178,8 @@ int main(int argc, char* argv[])
 		std::string uri = device["rtsp_uri"].as<std::string>();
 		std::uint32_t width = device["width"].as<std::uint32_t>();
 		std::uint32_t height = device["height"].as<std::uint32_t>();
-		std::string pixformat = device["width"].as<std::string>();
+		std::string pixformat = device["pixformat"].as<std::string>();
+		std::string ptzuri = device["ptz_uri"].as<std::string>();
 
 		std::cout << "- Token: " << token << std::endl;
 		std::cout << "  Name: " << name << std::endl;
@@ -185,6 +188,7 @@ int main(int argc, char* argv[])
 		std::cout << "  Width: " << width << std::endl;
 		std::cout << "  Height: " << height << std::endl;
 		std::cout << "  Pixformat: " << pixformat << std::endl;
+		std::cout << "  PTZ Uri: " << ptzuri << std::endl;
 
 		int format = V4L2_PIX_FMT_H264;
 		if(pixformat == "V4L2_PIX_FMT_H264")
@@ -196,7 +200,7 @@ int main(int argc, char* argv[])
 			format = V4L2_PIX_FMT_JPEG;
 		}
 
-		deviceCtx.m_devices[token] = (Device(name, port, uri, width, height, format));
+		deviceCtx.m_devices[token] = (Device(name, port, uri, width, height, format, ptzuri));
 	}
 
 	std::cout << std::endl;
