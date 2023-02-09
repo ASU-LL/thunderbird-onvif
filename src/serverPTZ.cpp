@@ -169,16 +169,20 @@ int PTZBindingService::RelativeMove(_tptz__RelativeMove *tptz__RelativeMove, _tp
     {
         Device d = it->second;
 		std::string url;
-		if(tptz__RelativeMove->Translation->PanTilt && tptz__RelativeMove->Translation->PanTilt->x)
+
+		// v4l2 will discard the first command sent if another one comes in immediately after,
+		// so this will "prioritize" based on the greatest magnitude
+
+		if(tptz__RelativeMove->Translation->PanTilt && tptz__RelativeMove->Translation->PanTilt->x && tptz__RelativeMove->Translation->PanTilt->y)
 		{
-			url = d.m_ptzUri + "pan_relative/" + std::to_string(tptz__RelativeMove->Translation->PanTilt->x);
+			float pan = tptz__RelativeMove->Translation->PanTilt->x;
+			float tilt = tptz__RelativeMove->Translation->PanTilt->y;
+
+			if(abs(pan) > abs(tilt))
+				url = d.m_ptzUri + "pan_relative/" + std::to_string(pan);
+			else
+				url = d.m_ptzUri + "tilt_relative/" + std::to_string(tilt);
         	ret = ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
-		}
-        
-		if(tptz__RelativeMove->Translation->PanTilt && tptz__RelativeMove->Translation->PanTilt->y)
-		{
-        	url = d.m_ptzUri + "tilt_relative/" + std::to_string(tptz__RelativeMove->Translation->PanTilt->y);
-        	ret &= ctx->httpGet(url) == 0 ? SOAP_OK : SOAP_FAULT;
 		}
 
 		if(tptz__RelativeMove->Translation->Zoom && tptz__RelativeMove->Translation->Zoom->x)
